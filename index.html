@@ -4,8 +4,8 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="cg100-version" content="3.5">
-<meta name="theme-color" content="#ececec"><title>fx-CG100 Python Emulator v3.5</title>
+<meta name="cg100-version" content="3.7">
+<meta name="theme-color" content="#ececec"><title>fx-CG100 Python Emulator v3.7</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:#ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#161616}body{overscroll-behavior:none}button,label{font:inherit}
 #app{min-height:100svh;display:flex;flex-direction:column;align-items:center;padding:max(10px,env(safe-area-inset-top)) 8px max(12px,env(safe-area-inset-bottom));gap:8px}
@@ -13,12 +13,10 @@
 #screen{position:absolute;left:3.597122%;top:3.466205%;width:92.805755%;height:25.129983%;display:block;background:#f7faf6;image-rendering:pixelated;image-rendering:crisp-edges;z-index:2}
 .hit{position:absolute;z-index:5;transform:translate(-50%,-50%);border:0;background:transparent;padding:0;margin:0;touch-action:none;-webkit-user-select:none;user-select:none;outline:none;border-radius:50%;-webkit-appearance:none;appearance:none}
 .hit.small{width:15.4%;height:6.1%}.hit.big{width:17%;height:6.6%}.hit.pressed::after{content:"";position:absolute;inset:8%;border-radius:50%;background:#0002}
-.quick{width:min(94vw,390px);display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:6px}
-.quick button,.quick label{border:1px solid #b8b8b8;background:#fdfdfd;border-radius:8px;min-height:38px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#242424;box-shadow:0 1px 2px #0001;touch-action:manipulation}.quick button:active,.quick label:active{background:#ddd}.quick input{display:none}
 .miniStatus{width:min(94vw,390px);display:flex;justify-content:space-between;gap:8px;font-size:11px;color:#666;padding:0 3px}#status.good{color:#176b45}#status.bad,.bad{color:#a52b2b}#fps{display:none}
 #codePanel{position:fixed;z-index:50;inset:0;background:#101112;color:#eaeaea;display:none;flex-direction:column;padding:max(8px,env(safe-area-inset-top)) 8px max(8px,env(safe-area-inset-bottom))}#codePanel.open{display:flex}
 .toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding-bottom:7px}.toolbar b{margin-right:auto}.toolbar button,.toolbar label{border:1px solid #4a4d50;background:#252729;color:#eee;border-radius:7px;padding:8px 10px;font-size:11px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}.toolbar input{display:none}.toolbar .stop{background:#5b2020}.meta{display:flex;justify-content:space-between;gap:10px;padding:4px 2px 6px;color:#aab0b3;font-size:10px}.editor{flex:1;min-height:220px;width:100%;resize:none;border:1px solid #2d3032;border-radius:8px;outline:none;background:#090a0b;color:#e8ebec;padding:12px;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;tab-size:4}.console{height:105px;margin:7px 0 0;padding:8px;overflow:auto;white-space:pre-wrap;background:#18191b;border-radius:8px;color:#c8cdd0;font:11px/1.35 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}.helpPanel{font-size:11px;color:#aaa;padding:5px 2px}.modules{font:11px ui-monospace,monospace}.pill{display:inline-block;border:1px solid #3b3e41;border-radius:99px;padding:2px 6px;margin:2px}.pill button{margin-left:4px}.statusdot{display:none}
-@media (min-width:700px){#app{padding-top:18px}.calc{width:min(70vh,390px)}.quick,.miniStatus{width:min(70vh,390px)}}
+@media (min-width:700px){#app{padding-top:18px}.calc,.miniStatus{width:min(70vh,390px)}}
 </style></head><body><main id="app">
 <div class="calc" aria-label="fx-CG100 calculator"><canvas id="screen" width="384" height="216" aria-label="calculator LCD"></canvas><button class="hit small" style="left:8.45324%;top:36.82842%" data-action="on" aria-label="ON"></button>
 <button class="hit small" style="left:25.00000%;top:36.82842%" data-action="home" aria-label="HOME"></button>
@@ -70,12 +68,11 @@
 <button class="hit big" style="left:49.82014%;top:89.86135%" data-k="93" aria-label="EXP10"></button>
 <button class="hit big" style="left:69.96403%;top:89.86135%" data-k="94" aria-label="FORMAT"></button>
 <button class="hit big" style="left:90.10791%;top:89.86135%" data-k="95" aria-label="EXE"></button></div>
-<div class="quick"><label>LOAD .PY<input id="open" type="file" accept=".py,text/x-python"></label><label>PROJECT<input id="addFolder" type="file" accept=".py,text/x-python" webkitdirectory directory multiple></label><button id="run" type="button">RUN</button><button id="codeToggle" type="button">CODE</button></div>
 <div class="miniStatus"><span><i id="dot" class="statusdot"></i><span id="status">Loading Python…</span></span><span id="size">0 B</span></div><span id="fps">0 fps</span>
-<section id="codePanel"><div class="toolbar"><b>Python files</b><button id="codeClose" type="button">CLOSE</button><button class="stop" id="stop" type="button">STOP</button><button id="save" type="button">SAVE</button><label>ADD .PY<input id="addModule" type="file" accept=".py,text/x-python" multiple></label><button id="check" type="button">CHECK</button><button id="keytest" type="button">KEY TEST</button></div><div class="meta"><span>module.py</span><span>CG100 OS 2.20 · MicroPython 1.9.4</span></div><textarea id="code" class="editor" spellcheck="false"></textarea><pre id="console" class="console">Preparing runtime…</pre><details class="helpPanel"><summary>Imported modules</summary><div id="moduleList" class="modules">None</div></details></section>
+<section id="codePanel"><div class="toolbar"><b>Python files</b><button id="codeClose" type="button">CLOSE</button><button class="stop" id="stop" type="button">STOP</button><button id="save" type="button">SAVE</button><label>ADD .PY<input id="addModule" type="file" accept=".py,text/x-python" multiple></label><button id="check" type="button">CHECK</button><button id="keytest" type="button">KEY TEST</button></div><div class="meta"><span id="activeFileName">module.py</span><span>CG100 OS 2.20 · MicroPython 1.9.4</span></div><textarea id="code" class="editor" spellcheck="false"></textarea><pre id="console" class="console">Preparing runtime…</pre><details class="helpPanel"><summary>Project files</summary><div id="moduleList" class="modules">Loading bundled games…</div></details></section>
 </main><script>window.addEventListener('DOMContentLoaded',()=>{
 'use strict';
-const APP_VERSION='3.5';
+const APP_VERSION='3.7';
 const UPDATE_CHECK_MS=30000;
 const SCREEN_FRAME_MS=1000/60;
 function installAutoUpdateCheck(){
@@ -108,8 +105,26 @@ function installAutoUpdateCheck(){
 installAutoUpdateCheck();
 const W=384,H=192,LCDH=216,$=id=>document.getElementById(id),cv=$('screen'),ctx=cv.getContext('2d',{alpha:false}),code=$('code'),status=$('status'),dot=$('dot'),consoleEl=$('console');
 ctx.imageSmoothingEnabled=false;
-let img=ctx.createImageData(W,H),px=img.data,held=null,heldSeen=false,keyQueue=[],stopped=false,running=false,skReady=false,frames=0,lastFrames=0,lastFps=performance.now(),runSerial=0,keyTest=false,lcdMode='editor',shellLines=[],graphicsDirty=false,graphicsShown=false,editorTop=0,homeIndex=8,nextScreenAt=0;
-let userModules={}; try{userModules=JSON.parse(localStorage.getItem('cg100modules')||'{}')||{}}catch(e){userModules={}}
+let img=ctx.createImageData(W,H),px=img.data,held=null,heldSeen=false,keyQueue=[],stopped=false,running=false,skReady=false,frames=0,lastFrames=0,lastFps=performance.now(),runSerial=0,keyTest=false,lcdMode='home',shellLines=[],graphicsDirty=false,graphicsShown=false,editorTop=0,homeIndex=8,nextScreenAt=0,activeFile='module.py',pythonFolder='',pythonFileIndex=0,bundleReady=false;
+const BUNDLED_PATHS=['module.py','Game_Explorer_Folder/Block.py','Game_Explorer_Folder/Chess.py','Game_Explorer_Folder/Connect4.py','Game_Explorer_Folder/Flappy.py','Game_Explorer_Folder/Game_Folder.py','Game_Explorer_Folder/KeyTest.py','Game_Explorer_Folder/Mine.py','Game_Explorer_Folder/Pacman.py','Game_Explorer_Folder/Snake.py','Game_Explorer_Folder/sudoku.py','Game_Explorer_Folder/Tetris2.py','Game_Explorer_Folder/TicTac.py','Game_Explorer_Folder/Triangle.py','Game_Explorer_Folder/Wordle.py'];
+let bundledFiles={},userModules={};try{userModules=JSON.parse(localStorage.getItem('cg100custommodules')||'{}')||{}}catch(e){userModules={}}
+function projectFiles(){return Object.assign({},userModules,bundledFiles)}
+let bundlePromise=null;
+async function loadBundledProject(){
+ if(bundlePromise)return bundlePromise;
+ bundlePromise=(async()=>{
+  try{
+   const entries=await Promise.all(BUNDLED_PATHS.map(async rel=>{const url=new URL('games/'+rel,location.href);url.searchParams.set('v',APP_VERSION);const res=await fetch(url.href,{cache:'no-store'});if(!res.ok)throw new Error(`${rel}: HTTP ${res.status}`);return [rel,await res.text()]}));
+   bundledFiles=Object.fromEntries(entries);bundleReady=true;
+   let saved='',savedFile='module.py',savedVersion='';try{saved=localStorage.getItem('cg100code')||'';savedFile=localStorage.getItem('cg100activefile')||'module.py';savedVersion=localStorage.getItem('cg100projectversion')||''}catch(e){}
+   if(savedVersion===APP_VERSION&&saved){activeFile=savedFile;code.value=saved}else{activeFile='module.py';code.value=bundledFiles['module.py'];try{localStorage.setItem('cg100projectversion',APP_VERSION)}catch(e){}}
+   $('activeFileName').textContent=activeFile;renderModules();updateMeta();if(lcdMode==='python-files')renderPythonFiles();
+   if(skReady)setStatus('Ready · 13 games & tools','good');
+   return true
+  }catch(e){bundleReady=false;consoleEl.textContent='Could not load the bundled calculator games: '+e.message;setStatus('Games unavailable','bad');return false}
+ })();
+ return bundlePromise
+}
 const NONE=()=>Sk.builtin.none.none$;
 const WHITE=[255,255,255], BLACK=[0,0,0];
 const COLOR_WORDS={b:[0,0,255],blue:[0,0,255],r:[255,0,0],red:[255,0,0],g:[0,128,0],green:[0,128,0],m:[255,0,255],magenta:[255,0,255],k:[0,0,0],black:[0,0,0],c:[0,255,255],cyan:[0,255,255],y:[255,255,0],yellow:[255,255,0],w:[255,255,255],white:[255,255,255],grey:[128,128,128],gray:[128,128,128],orange:[255,165,0],purple:[128,0,128],brown:[165,42,42],pink:[255,192,203]};
@@ -133,16 +148,19 @@ function lcdBase(){ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.imageSmoothingEn
 function fwText(text,x,y,size=14,weight='400',color='#111',align='left',family='Arial'){ctx.save();ctx.fillStyle=color;ctx.font=`${weight} ${size}px ${family}`;ctx.textBaseline='top';ctx.textAlign=align;ctx.fillText(String(text),x,y);ctx.restore()}
 function fwFooter(active){ctx.fillStyle='#050505';ctx.fillRect(0,194,W,22);fwText('↤',7,197,15,'700','#fff');fwText('↦',377,197,15,'700','#fff','right');if(active==='editor'){ctx.fillStyle='#f8faf7';ctx.fillRect(31,194,161,22);fwText('Editor',111,198,14,'700','#111','center','Consolas');fwText('Shell',278,198,14,'700','#fff','center','Consolas')}else{fwText('Editor',111,198,14,'700','#fff','center','Consolas');ctx.fillStyle='#f8faf7';ctx.fillRect(192,194,160,22);fwText('Shell',272,198,14,'700','#111','center','Consolas')}}
 function fwHeader(title){ctx.fillStyle='#050505';ctx.fillRect(0,0,W,22);ctx.strokeStyle='#eee';ctx.strokeRect(5,4,11,14);fwText('A',20,4,10,'700','#fff');fwText('α',28,5,10,'700','#fff');fwText(title,43,3,15,'700','#fff','left','Consolas')}
-function renderEditor(){if(running||keyTest)return;lcdMode='editor';cv.style.visibility='visible';lcdBase();fwHeader('module.py');ctx.fillStyle='#e7ebe5';ctx.fillRect(0,22,29,172);ctx.fillStyle='#b5bbb5';ctx.fillRect(28,22,1,172);const lines=code.value.replace(/\r\n/g,'\n').split('\n');const visible=9;editorTop=Math.max(0,Math.min(editorTop,Math.max(0,lines.length-visible)));for(let i=0;i<visible;i++){let n=editorTop+i,y=26+i*19;fwText(n+1,23,y,11,'400','#555','right','Consolas');if(n<lines.length){let t=lines[n].replace(/\t/g,'  ');if(t.length>54)t=t.slice(0,53)+'…';fwText(t,34,y,12,'400','#141514','left','Consolas')}}fwFooter('editor')}
+function renderEditor(){if(running||keyTest)return;lcdMode='editor';cv.style.visibility='visible';lcdBase();fwHeader(activeFile.split('/').pop());ctx.fillStyle='#e7ebe5';ctx.fillRect(0,22,29,172);ctx.fillStyle='#b5bbb5';ctx.fillRect(28,22,1,172);const lines=code.value.replace(/\r\n/g,'\n').split('\n');const visible=9;editorTop=Math.max(0,Math.min(editorTop,Math.max(0,lines.length-visible)));for(let i=0;i<visible;i++){let n=editorTop+i,y=26+i*19;fwText(n+1,23,y,11,'400','#555','right','Consolas');if(n<lines.length){let t=lines[n].replace(/\t/g,'  ');if(t.length>54)t=t.slice(0,53)+'…';fwText(t,34,y,12,'400','#141514','left','Consolas')}}fwFooter('editor')}
 function renderShell(){if(keyTest)return;lcdMode='shell';cv.style.visibility='visible';lcdBase();fwHeader('Shell');let arr=[];for(const part of shellLines){for(const ln of String(part).replace(/\r/g,'').split('\n'))arr.push(ln)}arr=arr.slice(-9);for(let i=0;i<arr.length;i++){let line=arr[i];if(line.length>78)line=line.slice(0,77)+'…';fwText(line,8,27+i*18,10,'400','#111','left','Consolas')}fwFooter('shell')}
+function pythonEntries(){const prefix=pythonFolder?pythonFolder+'/':'',found=new Map();for(const rel of Object.keys(projectFiles())){if(!rel.startsWith(prefix))continue;const rest=rel.slice(prefix.length);if(!rest)continue;const slash=rest.indexOf('/'),name=slash<0?rest:rest.slice(0,slash),folder=slash>=0,itemRel=prefix+name;if(!found.has(itemRel))found.set(itemRel,{name:name+(folder?'/':''),rel:itemRel,folder})}return [...found.values()].sort((a,b)=>{if(a.rel==='module.py')return -1;if(b.rel==='module.py')return 1;if(a.folder!==b.folder)return a.folder?-1:1;return a.name.localeCompare(b.name,undefined,{sensitivity:'base'})})}
+function renderPythonFiles(){if(running||keyTest)return;lcdMode='python-files';cv.style.visibility='visible';lcdBase();fwHeader('Python');fwText(pythonFolder?'/'+pythonFolder:'Storage Memory',8,25,10,'700','#555','left','Consolas');const entries=pythonEntries(),visible=7;pythonFileIndex=Math.max(0,Math.min(pythonFileIndex,Math.max(0,entries.length-1)));const top=Math.max(0,Math.min(pythonFileIndex-3,Math.max(0,entries.length-visible)));if(!bundleReady){fwText('Loading bundled games…',192,88,13,'400','#555','center','Consolas')}else for(let i=0;i<visible;i++){const n=top+i;if(n>=entries.length)break;const y=43+i*20,selected=n===pythonFileIndex;if(selected){ctx.fillStyle='#dceafa';ctx.fillRect(7,y-3,370,19);ctx.fillStyle='#2470c8';ctx.fillRect(7,y-3,4,19)}fwText(entries[n].folder?'▣':'Py',18,y,11,'700',selected?'#155fae':'#555','left','Consolas');fwText(entries[n].name,48,y,12,selected?'700':'400','#111','left','Consolas')}ctx.fillStyle='#050505';ctx.fillRect(0,194,W,22);fwText('BACK',12,199,10,'700','#fff','left','Consolas');fwText('↑↓ SELECT',192,199,10,'400','#ddd','center','Consolas');fwText('OK/EXE OPEN',372,199,10,'700','#fff','right','Consolas')}
+function openPythonEntry(){const entry=pythonEntries()[pythonFileIndex];if(!entry)return;if(entry.folder){pythonFolder=entry.rel;pythonFileIndex=0;renderPythonFiles();return}const source=projectFiles()[entry.rel];if(source===undefined)return;activeFile=entry.rel;code.value=source;editorTop=0;$('activeFileName').textContent=activeFile;try{localStorage.setItem('cg100activefile',activeFile);localStorage.setItem('cg100projectversion',APP_VERSION)}catch(e){}updateMeta();renderEditor()}
 const HOME_APPS=[['Calculate','+−×÷'],['Graph&Table','⌁'],['Statistics','▥'],['Equation','x²'],['Recursion','uₙ'],['Dyna Graph','⌒'],['Distribution','▦'],['Num Ineq','a<x<b'],['Python','Py'],['Base-N','₂₁₀'],['Conic Graphs','◯'],['Spreadsheet','▤']];
 function renderHome(){if(running||keyTest)return;lcdMode='home';cv.style.visibility='visible';lcdBase();fwHeader('HOME');for(let i=0;i<HOME_APPS.length;i++){let c=i%4,r=(i/4)|0,x=48+c*92,y=35+r*49,selected=i===homeIndex;if(selected){ctx.strokeStyle='#1e63bd';ctx.lineWidth=2;ctx.strokeRect(x-35,y-8,72,42)}fwText(HOME_APPS[i][1],x,y-4,17,'700',selected?'#1563c1':'#222','center');fwText(HOME_APPS[i][0],x,y+17,7,'700','#111','center')}fwText('OK/EXE: open selected app',192,180,9,'400','#555','center','Consolas')}
-function openHomeApp(){if(homeIndex===8){renderEditor();return}lcdBase();fwHeader(HOME_APPS[homeIndex][0]);fwText(HOME_APPS[homeIndex][0],192,82,18,'700','#111','center');fwText('This emulator currently implements Python.',192,112,10,'400','#555','center','Consolas');fwText('BACK: return to HOME',192,180,9,'400','#555','center','Consolas');lcdMode='home-app'}
+function openHomeApp(){if(homeIndex===8){pythonFolder='';pythonFileIndex=0;renderPythonFiles();return}lcdBase();fwHeader(HOME_APPS[homeIndex][0]);fwText(HOME_APPS[homeIndex][0],192,82,18,'700','#111','center');fwText('This emulator currently implements Python.',192,112,10,'400','#555','center','Consolas');fwText('BACK: return to HOME',192,180,9,'400','#555','center','Consolas');lcdMode='home-app'}
 function drawGraphicsFooter(){ctx.fillStyle='#050505';ctx.fillRect(0,192,W,24);fwText('↤',7,196,16,'700','#fff');fwText('Drawing Screen',192,198,10,'400','#ddd','center','Consolas')}
 function paint(){lcdMode='graphics';cv.style.visibility='visible';lcdBase();ctx.putImageData(img,0,0);drawTurtleOverlay();drawGraphicsFooter();graphicsShown=true;graphicsDirty=false;frames++}
 function requestPaint(){requestAnimationFrame(()=>paint())}
 function showFrame(){const now=performance.now(),delay=Math.max(0,nextScreenAt-now);nextScreenAt=Math.max(now,nextScreenAt)+SCREEN_FRAME_MS;return new Promise(resolve=>setTimeout(()=>{paint();resolve(NONE())},delay))}
-clear();graphicsDirty=false;renderEditor();
+clear();graphicsDirty=false;renderHome();
 const taskQueue=[],chan=new MessageChannel();chan.port1.onmessage=()=>{const f=taskQueue.shift();if(f)f()};
 function nextTask(v){return new Promise(resolve=>{taskQueue.push(()=>resolve(v));chan.port2.postMessage(0)})}
 function py(v){if(v===undefined||v===null)return undefined;if(window.Sk&&v===Sk.builtin.none.none$)return null;return Sk.ffi.remapToJs(v)}
@@ -151,7 +169,7 @@ function sout(s){consoleEl.textContent+=s;consoleEl.scrollTop=consoleEl.scrollHe
 function setStatus(s,kind=''){status.textContent=s;dot.className='statusdot '+kind}
 function clearInput(){held=null;heldSeen=false;keyQueue.length=0;document.querySelectorAll('.hit.pressed').forEach(x=>x.classList.remove('pressed'))}
 function stopRun(){stopped=true;runSerial++;clearInput();running=false;setStatus('Stopped','');shellLines.push('KeyboardInterrupt');renderShell()}
-function resetMachine(){stopped=true;runSerial++;clearInput();running=false;clear();graphicsDirty=false;graphicsShown=false;turtle={x:0,y:0,h:0,down:true,color:'black',rgb:[0,0,0],width:1,visible:true,shape:'classic',speed:5};consoleEl.textContent='';shellLines=[];renderEditor()}
+function resetMachine(){stopped=true;runSerial++;clearInput();running=false;clear();graphicsDirty=false;graphicsShown=false;turtle={x:0,y:0,h:0,down:true,color:'black',rgb:[0,0,0],width:1,visible:true,shape:'classic',speed:5};consoleEl.textContent='';shellLines=[];pythonFolder='';pythonFileIndex=0;renderHome()}
 
 // Official-looking plotting state. Rendering is compatible in API/semantics, not pixel-for-pixel firmware artwork.
 function newMpl(){return {range:[0,1,0,1],manual:false,axis:true,grid:false,gridColor:'grey',objs:[],ci:0}}
@@ -282,7 +300,7 @@ function installBridge(){
  Sk.builtins._cg_getpixel=new Sk.builtin.func((x,y)=>{const g=getp(py(x),py(y));return new Sk.builtin.tuple(g.map(v=>new Sk.builtin.int_(v))) });
  Sk.builtins._cg_text=new Sk.builtin.func((x,y,s,c,z)=>{drawText(py(x),py(y),py(s),py(c),py(z));return NONE()});
  Sk.builtins._cg_show=new Sk.builtin.func(()=>{if(stopped)throw new Sk.builtin.RuntimeError('KeyboardInterrupt');return Sk.misceval.promiseToSuspension(showFrame())});
- Sk.builtins._cg_getkey=new Sk.builtin.func(()=>{if(stopped)throw new Sk.builtin.RuntimeError('KeyboardInterrupt');const read=()=>{if(keyQueue.length){const queued=keyQueue.shift();return queued===null?NONE():new Sk.builtin.int_(queued)}if(held!==null){heldSeen=true;return new Sk.builtin.int_(held)}return NONE()};if(keyQueue.length||held!==null)return read();return Sk.misceval.promiseToSuspension(new Promise(resolve=>setTimeout(()=>{if(stopped){resolve(NONE());return}resolve(read())},8.3)))});
+ Sk.builtins._cg_getkey=new Sk.builtin.func(()=>{if(stopped)throw new Sk.builtin.RuntimeError('KeyboardInterrupt');const read=()=>{if(keyQueue.length){const queued=keyQueue.shift();return queued===null?NONE():new Sk.builtin.int_(queued)}if(held!==null){heldSeen=true;return new Sk.builtin.int_(held)}return NONE()};return Sk.misceval.promiseToSuspension(new Promise(resolve=>setTimeout(()=>{if(stopped){resolve(NONE());return}resolve(read())},8.3)))});
  Sk.builtins._cg_mpl_axis=new Sk.builtin.func(v=>{const V=v===undefined||v===Sk.builtin.none.none$?null:py(v);if(V==null)return toPy(mpl.range.slice());if(typeof V==='string'){if(V==='on')mpl.axis=true;else if(V==='off')mpl.axis=false;else if(V==='auto')mpl.manual=false;else throw new Sk.builtin.ValueError('axis expects on, off, auto, or four limits')}else if(Array.isArray(V)&&V.length===4&&V.every(x=>Number.isFinite(Number(x)))){mpl.range=V.map(Number);mpl.manual=true}else throw new Sk.builtin.ValueError('axis expects on, off, auto, or four limits');return toPy(mpl.range.slice())});
  Sk.builtins._cg_mpl_grid=new Sk.builtin.func((o,c)=>{let O=o===undefined||o===Sk.builtin.none.none$?null:py(o),C=c===undefined||c===Sk.builtin.none.none$?null:py(c);if(O==null)mpl.grid=!mpl.grid;else if(O===true||O==='on')mpl.grid=true;else if(O===false||O==='off')mpl.grid=false;else throw new Sk.builtin.ValueError('grid expects on, off, True, or False');if(C!=null){if(typeof C!=='string'||!MPL_COLORS.has(C.toLowerCase()))throw new Sk.builtin.ValueError('unsupported grid color');mpl.gridColor=C}return NONE()});
  Sk.builtins._cg_mpl_plot=new Sk.builtin.func((x,y,c)=>{let X=nums(py(x)),Y=nums(py(y));if(X.length!==Y.length)throw new Sk.builtin.ValueError('x and y must have same length');mpl.objs.push({t:'plot',x:X,y:Y,c:mplColor(c===undefined||c===Sk.builtin.none.none$?null:py(c))});return NONE()});
@@ -306,7 +324,7 @@ function injectUserModules(){
  if(!window.Sk||!Sk.builtinFiles)return;
  for(const p of injectedModulePaths)delete Sk.builtinFiles.files[p];
  injectedModulePaths.clear();
- for(const [n,s] of Object.entries(userModules)){
+ for(const [n,s] of Object.entries(projectFiles())){
   const clean=n.replace(/^\/+/, '').replace(/\\/g,'/');
   const p='src/lib/'+clean;
   Sk.builtinFiles.files[p]=s;injectedModulePaths.add(p);
@@ -335,8 +353,8 @@ function checkSource(src,name='module.py',runtimeOnly=false){
  if(src.includes(':='))out.push(`${name}: walrus operator := is not supported`);
  if(/\basync\s+(?:def|for|with)\b|\bawait\b|\byield\s+from\b/.test(src))out.push(`${name}: async/await or yield from is not supported`);
  if(/^\s*(?:match\s+.+:|case\s+.+:)\s*(?:#.*)?$/m.test(src))out.push(`${name}: structural pattern matching is not supported`);
- for(const ln of lines){if(/^\s*def\b/.test(ln)&&(/->/.test(ln)||/\([^)]*\b\w+\s*:\s*[^,)=]+/.test(ln)))out.push(`${name}: type annotations are not supported`);if(/^\s*(?:self\.)?[A-Za-z_]\w*\s*:\s*[^:=]+(?:=.+)?$/.test(ln))out.push(`${name}: variable annotations are not supported`)}
- const localMods=new Set();for(const n of Object.keys(userModules)){const clean=n.replace(/\\/g,'/').replace(/\.py$/i,''),parts=clean.split('/');localMods.add(parts[0]);localMods.add(parts[parts.length-1])}
+ for(const ln of lines){if(/^\s*def\b/.test(ln)&&(/->/.test(ln)||/\([^)]*\b\w+\s*:\s*[^,)=]+/.test(ln)))out.push(`${name}: type annotations are not supported`);const ann=ln.match(/^\s*((?:self\.)?[A-Za-z_]\w*)\s*:\s*[A-Za-z_][\w.\[\], ]*(?:\s*=\s*.+)?\s*$/);if(ann&&!new Set(['if','elif','else','for','while','try','except','finally','with','def','class','case','match']).has(ann[1]))out.push(`${name}: variable annotations are not supported`)}
+ const localMods=new Set();for(const n of Object.keys(projectFiles())){const clean=n.replace(/\\/g,'/').replace(/\.py$/i,''),parts=clean.split('/');localMods.add(parts[0]);localMods.add(parts[parts.length-1])}
  for(const ln of lines){const bare=ln.match(/^\s*import\s+([^#]+)/);if(bare)for(const item of bare[1].split(',')){const mod=item.trim().split(/\s+as\s+/)[0];if(mod&&!ALLOWED_IMPORTS.has(mod)&&!localMods.has(mod.split('.')[0]))out.push(`${name}: import '${mod}' is not part of the CG100 Python environment`)}const from=ln.match(/^\s*from\s+([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)*)\s+import\s+/);if(from){const mod=from[1];if(!ALLOWED_IMPORTS.has(mod)&&!localMods.has(mod.split('.')[0]))out.push(`${name}: import '${mod}' is not part of the CG100 Python environment`)}}
  for(const b of UNSUP_BUILTINS)if(new RegExp(`\\b${b}\\s*\\(`).test(src))out.push(`${name}: ${b}() is unavailable on the measured CG100 build`);
  for(const m of UNSUP_METHODS)if(new RegExp(`\\.${m}\\s*\\(`).test(src))out.push(`${name}: .${m}() is unavailable on the measured CG100 build`);
@@ -347,8 +365,9 @@ function checkSource(src,name='module.py',runtimeOnly=false){
  return [...new Set(out)];
 }
 function allIssues(runtimeOnly=false){
- let a=checkSource(code.value,'module.py',runtimeOnly);
- for(const [n,s] of Object.entries(userModules)){
+ let a=checkSource(code.value,activeFile,runtimeOnly);
+ for(const [n,s] of Object.entries(projectFiles())){
+  if(n===activeFile)continue;
   const parts=n.replace(/\\/g,'/').split('/').filter(Boolean);
   for(const part of parts){
    if(/[^\x00-\x7F]/.test(part)||/[\\:*?"<>|]/.test(part)||(/\./.test(part.replace(/\.py$/i,''))))a.push(`${n}: path component '${part}' uses a character the CG100 storage filename rules reject`);
@@ -360,17 +379,18 @@ function allIssues(runtimeOnly=false){
  return a
 }
 function showCheck(){let a=allIssues();consoleEl.textContent=a.length?'CG100 COMPATIBILITY\n\n'+a.map((x,i)=>`${i+1}. ${x}`).join('\n'):'CG100 COMPATIBILITY\n\nNo known incompatibilities found by this checker.\n\nNote: this checks the documented/current API and measured runtime restrictions; it is not a byte-for-byte firmware emulator.';setStatus(a.length?`${a.length} compatibility issue${a.length===1?'':'s'}`:'CG100 compatible','good')}
-function updateMeta(){let s=code.value,bytes=new TextEncoder().encode(s).length,lines=s.replace(/\r\n/g,'\n').split('\n'),max=Math.max(0,...lines.map(x=>x.length));$('size').textContent=`${bytes} B · ${lines.length}/300 lines · max ${max}/255`; $('size').className=(lines.length>300||max>255||/[^\x00-\x7F]/.test(s))?'bad':'';try{localStorage.setItem('cg100code',s)}catch(e){};if(lcdMode==='editor')renderEditor()}
-function renderModules(){let root=$('moduleList'),names=Object.keys(userModules);root.innerHTML=names.length?'':'None';for(const n of names){let sp=document.createElement('span');sp.className='pill';sp.textContent=n;let b=document.createElement('button');b.textContent='×';b.onclick=()=>{delete userModules[n];try{localStorage.setItem('cg100modules',JSON.stringify(userModules))}catch(e){};renderModules()};sp.appendChild(b);root.appendChild(sp)}}
+function updateMeta(){let s=code.value,bytes=new TextEncoder().encode(s).length,lines=s.replace(/\r\n/g,'\n').split('\n'),max=Math.max(0,...lines.map(x=>x.length));$('size').textContent=`${bytes} B · ${lines.length}/300 lines · max ${max}/255`; $('size').className=(lines.length>300||max>255||/[^\x00-\x7F]/.test(s))?'bad':'';try{localStorage.setItem('cg100code',s);localStorage.setItem('cg100activefile',activeFile)}catch(e){};if(lcdMode==='editor')renderEditor()}
+function renderModules(){let root=$('moduleList'),names=Object.keys(projectFiles());root.innerHTML=names.length?'':'None';for(const n of names){let sp=document.createElement('span');sp.className='pill';sp.textContent=n+(bundledFiles[n]!==undefined?' · built in':'');if(userModules[n]!==undefined&&bundledFiles[n]===undefined){let b=document.createElement('button');b.textContent='×';b.onclick=()=>{delete userModules[n];try{localStorage.setItem('cg100custommodules',JSON.stringify(userModules))}catch(e){};renderModules()};sp.appendChild(b)}root.appendChild(sp)}}
 
 async function runProgram(){
  if(running)return;
+ if(!bundleReady){const loaded=await loadBundledProject();if(!loaded)return}
  const incompatibilities=allIssues(true);
  if(incompatibilities.length){const report='CG100 EXECUTION BLOCKED\n\n'+incompatibilities.map((x,i)=>`${i+1}. ${x}`).join('\n')+'\n\nFix these incompatibilities before running.';consoleEl.textContent=report;shellLines=['* SHELL Initialized *',...report.split('\n'),'>>>'];renderShell();setStatus(`${incompatibilities.length} blocking compatibility issue${incompatibilities.length===1?'':'s'}`,'bad');return}
  if(!skReady){const ok=await prepareRuntime();if(!ok){setStatus('Python failed to load','bad');consoleEl.textContent='Could not load the browser Python runtime. First run needs an internet connection.';return}}
  const my=++runSerial;stopped=false;running=true;keyTest=false;clearInput();graphicsShown=false;nextScreenAt=0;clear();graphicsDirty=false;
  turtle={x:0,y:0,h:0,down:true,color:'black',rgb:[0,0,0],width:1,visible:true,shape:'classic',speed:5};
- consoleEl.textContent='';shellLines=['* SHELL Initialized *','>>> import module'];renderShell();injectUserModules();try{Sk.sysmodules=new Sk.builtin.dict([])}catch(e){}Sk.configure({output:sout,read:builtinRead,__future__:Sk.python3});setStatus('Running','good');
+ consoleEl.textContent='';shellLines=['* SHELL Initialized *','>>> run '+activeFile];renderShell();injectUserModules();try{Sk.sysmodules=new Sk.builtin.dict([])}catch(e){}Sk.configure({output:sout,read:builtinRead,__future__:Sk.python3});setStatus('Running','good');
  try{
   await Sk.misceval.asyncToPromise(()=>Sk.importMainWithBody('__main__',false,code.value,true),{suspHandlers:{'*':s=>s.data.promise}});
   if(my===runSerial&&!stopped){
@@ -387,6 +407,7 @@ function showKey(k){clear();drawText(8,8,'getkey()',BLACK,'medium');drawText(8,3
 function uiKey(k){
  if(keyTest){showKey(k);return}
  if(running)return;
+ if(k===36){setCodePanel(true);return}
  if(lcdMode==='home'){
   if(k===23){homeIndex=homeIndex%4===0?homeIndex+3:homeIndex-1;renderHome();return}
   if(k===25){homeIndex=homeIndex%4===3?homeIndex-3:homeIndex+1;renderHome();return}
@@ -394,8 +415,17 @@ function uiKey(k){
   if(k===34){homeIndex=(homeIndex+4)%12;renderHome();return}
   if(k===24||k===95||k===13||k===15){openHomeApp();return}
  }
+ if(lcdMode==='python-files'){
+  const entries=pythonEntries();
+  if(k===14&&pythonFileIndex>0){pythonFileIndex--;renderPythonFiles();return}
+  if(k===34&&pythonFileIndex+1<entries.length){pythonFileIndex++;renderPythonFiles();return}
+  if(k===16){pythonFileIndex=Math.max(0,pythonFileIndex-7);renderPythonFiles();return}
+  if(k===26){pythonFileIndex=Math.min(Math.max(0,entries.length-1),pythonFileIndex+7);renderPythonFiles();return}
+  if(k===24||k===95||k===13||k===15){openPythonEntry();return}
+  if(k===22||k===12){if(pythonFolder){pythonFolder=pythonFolder.split('/').slice(0,-1).join('/');pythonFileIndex=0;renderPythonFiles()}else renderHome();return}
+ }
  if(lcdMode==='home-app'&&k===22){renderHome();return}
- if(k===22){if(lcdMode==='graphics'){renderShell();return}if(lcdMode==='shell'){renderEditor();return}if(lcdMode==='editor'){renderHome();return}}
+ if(k===22){if(lcdMode==='graphics'){renderShell();return}if(lcdMode==='shell'){renderEditor();return}if(lcdMode==='editor'){pythonFolder=activeFile.includes('/')?activeFile.split('/').slice(0,-1).join('/'):'';pythonFileIndex=Math.max(0,pythonEntries().findIndex(x=>x.rel===activeFile));renderPythonFiles();return}}
  if(lcdMode==='editor'){
   if(k===14){editorTop=Math.max(0,editorTop-1);renderEditor();return}
   if(k===34){editorTop++;renderEditor();return}
@@ -420,38 +450,17 @@ window.addEventListener('keydown',e=>{if(e.repeat)return;let k=KM[e.key];if(k){i
 window.addEventListener('keyup',e=>{let k=KM[e.key];if(k&&held===k){if((running||keyTest)&&!heldSeen)keyQueue.push(k,null);held=null;heldSeen=false}});window.addEventListener('blur',clearInput);document.addEventListener('visibilitychange',()=>{if(document.hidden)clearInput()});
 document.addEventListener('contextmenu',e=>{if(e.target.closest&&e.target.closest('.calc'))e.preventDefault()});
 document.addEventListener('touchmove',e=>{if(e.target.closest&&e.target.closest('.calc'))e.preventDefault()},{passive:false});
-$('run').onclick=runProgram;$('stop').onclick=stopRun;$('check').onclick=showCheck;$('keytest').onclick=startKeyTest;
-$('open').onchange=async e=>{let f=e.target.files[0];if(!f)return;code.value=await f.text();updateMeta();showCheck();e.target.value=''};
-$('save').onclick=()=>{let text=code.value.replace(/\r?\n/g,'\r\n'),b=new Blob([text],{type:'text/x-python'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='module.py';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
-$('addModule').onchange=async e=>{for(const f of e.target.files){if(!/\.py$/i.test(f.name))continue;let s=await f.text();userModules[f.name]=s}try{localStorage.setItem('cg100modules',JSON.stringify(userModules))}catch(e){};renderModules();injectUserModules();showCheck();e.target.value=''};
-$('addFolder').onchange=async e=>{
- const files=[...e.target.files].filter(f=>/\.py$/i.test(f.name));
- if(!files.length){e.target.value='';return}
- userModules={};
- for(const f of files){
-  let rel=(f.webkitRelativePath||f.name).replace(/\\/g,'/');
-  let parts=rel.split('/');
-  if(parts.length>1)parts.shift();
-  rel=parts.join('/')||f.name;
-  const text=await f.text();
-  if(rel.toLowerCase()==='module.py'){code.value=text;editorTop=0;updateMeta()}
-  else userModules[rel]=text;
- }
- try{localStorage.setItem('cg100modules',JSON.stringify(userModules))}catch(e){};
- renderModules();injectUserModules();showCheck();renderEditor();
- setStatus(`Loaded project: ${files.length} Python file${files.length===1?'':'s'}`,'good');
- e.target.value='';
-};
+$('stop').onclick=stopRun;$('check').onclick=showCheck;$('keytest').onclick=startKeyTest;
+$('save').onclick=()=>{let text=code.value.replace(/\r?\n/g,'\r\n'),b=new Blob([text],{type:'text/x-python'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=activeFile.split('/').pop();a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)};
+$('addModule').onchange=async e=>{for(const f of e.target.files){if(!/\.py$/i.test(f.name))continue;let s=await f.text();userModules[f.name]=s}try{localStorage.setItem('cg100custommodules',JSON.stringify(userModules))}catch(e){};renderModules();injectUserModules();showCheck();e.target.value=''};
 code.addEventListener('input',()=>{updateMeta();if(lcdMode==='editor')renderEditor()});code.addEventListener('keydown',e=>{if(e.key==='Tab'){e.preventDefault();let a=code.selectionStart,b=code.selectionEnd;code.setRangeText('  ',a,b,'end')}});
 setInterval(()=>{let now=performance.now();if(now-lastFps>=1000){$('fps').textContent=Math.round((frames-lastFrames)*1000/(now-lastFps))+' fps';lastFrames=frames;lastFps=now}},500);
-const codePanel=$('codePanel'),codeToggle=$('codeToggle'),codeClose=$('codeClose');
-function setCodePanel(open){codePanel.classList.toggle('open',!!open);codeToggle.textContent=open?'CLOSE':'CODE'}
-codeToggle.onclick=()=>setCodePanel(!codePanel.classList.contains('open'));
+const codePanel=$('codePanel'),codeClose=$('codeClose');
+function setCodePanel(open){codePanel.classList.toggle('open',!!open)}
 codeClose.onclick=()=>setCodePanel(false);
-try{const saved=localStorage.getItem('cg100code');if(saved)code.value=saved}catch(e){}
-renderModules();updateMeta();
+renderModules();
  document.addEventListener('dragover',e=>{if([...e.dataTransfer.types].includes('Files'))e.preventDefault()});
- document.addEventListener('drop',async e=>{if(!e.dataTransfer.files.length)return;e.preventDefault();const fs=[...e.dataTransfer.files].filter(f=>/\.py$/i.test(f.name));for(const f of fs){const text=await f.text();if(f.name.toLowerCase()==='module.py'){code.value=text;updateMeta()}else userModules[f.name]=text}try{localStorage.setItem('cg100modules',JSON.stringify(userModules))}catch(e){};renderModules();injectUserModules();renderEditor()});
+ document.addEventListener('drop',async e=>{if(!e.dataTransfer.files.length)return;e.preventDefault();const fs=[...e.dataTransfer.files].filter(f=>/\.py$/i.test(f.name));for(const f of fs){const text=await f.text();if(f.name.toLowerCase()==='module.py'){activeFile='module.py';code.value=text;updateMeta()}else userModules[f.name]=text}try{localStorage.setItem('cg100custommodules',JSON.stringify(userModules))}catch(e){};renderModules();injectUserModules();renderEditor()});
 function loadRuntimeScript(url,timeout=9000){return new Promise((resolve,reject)=>{let done=false,s=document.createElement('script'),timer=setTimeout(()=>{if(done)return;done=true;s.remove();reject(new Error('Timed out loading '+url))},timeout);s.src=url;s.async=true;s.onload=()=>{if(done)return;done=true;clearTimeout(timer);resolve()};s.onerror=()=>{if(done)return;done=true;clearTimeout(timer);s.remove();reject(new Error('Could not load '+url))};document.head.appendChild(s)})}
 async function ensureSkulpt(){
  if(window.Sk&&Sk.builtinFiles)return true;
@@ -467,6 +476,6 @@ async function ensureSkulpt(){
  }
  return false
 }
-let runtimePromise=null;async function prepareRuntime(){if(skReady)return true;if(runtimePromise)return runtimePromise;runtimePromise=(async()=>{try{if(await ensureSkulpt()){installBridge();skReady=true;setStatus('Ready','good');return true}return false}catch(e){consoleEl.textContent=String(e);setStatus('Runtime error','bad');return false}finally{runtimePromise=null}})();return runtimePromise}
-setStatus('Loading Python…','');consoleEl.textContent='Preparing the Python runtime…\n';renderEditor();prepareRuntime().then(ok=>{if(!ok){setStatus('Python unavailable','bad');consoleEl.textContent+='Could not load Python. Connect to the internet once, then reopen this file.\n'}})
+let runtimePromise=null;async function prepareRuntime(){if(skReady)return true;if(runtimePromise)return runtimePromise;runtimePromise=(async()=>{try{if(await ensureSkulpt()){installBridge();skReady=true;setStatus(bundleReady?'Ready · 13 games & tools':'Loading bundled games…',bundleReady?'good':'');return true}return false}catch(e){consoleEl.textContent=String(e);setStatus('Runtime error','bad');return false}finally{runtimePromise=null}})();return runtimePromise}
+setStatus('Loading games & Python…','');consoleEl.textContent='Preparing the bundled games and Python runtime…\n';renderHome();loadBundledProject();prepareRuntime().then(ok=>{if(!ok){setStatus('Python unavailable','bad');consoleEl.textContent+='Could not load Python. Connect to the internet once, then reopen this page.\n'}})
 });</script></body></html>
