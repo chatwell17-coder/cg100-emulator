@@ -4,8 +4,8 @@
 <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="pragma" content="no-cache">
 <meta http-equiv="expires" content="0">
-<meta name="cg100-version" content="3.9">
-<meta name="theme-color" content="#ececec"><title>fx-CG100 Python Emulator v3.9</title>
+<meta name="cg100-version" content="4.0">
+<meta name="theme-color" content="#ececec"><title>fx-CG100 Python Emulator v4.0</title>
 <style>
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html,body{margin:0;min-height:100%;background:#ececec;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:#161616}body{overscroll-behavior:none}button,label{font:inherit}
 #app{min-height:100svh;display:flex;flex-direction:column;align-items:center;padding:max(10px,env(safe-area-inset-top)) 8px max(12px,env(safe-area-inset-bottom));gap:8px}
@@ -72,10 +72,11 @@
 <section id="codePanel"><div class="toolbar"><b>Python files</b><button id="codeClose" type="button">CLOSE</button><button class="stop" id="stop" type="button">STOP</button><button id="save" type="button">SAVE</button><label>ADD .PY<input id="addModule" type="file" accept=".py,text/x-python" multiple></label><button id="check" type="button">CHECK</button><button id="keytest" type="button">KEY TEST</button></div><div class="meta"><span id="activeFileName">module.py</span><span>CG100 OS 2.20 · MicroPython 1.9.4</span></div><textarea id="code" class="editor" spellcheck="false"></textarea><pre id="console" class="console">Preparing runtime…</pre><details class="helpPanel"><summary>Project files</summary><div id="moduleList" class="modules">Loading bundled games…</div></details></section>
 </main><script>window.addEventListener('DOMContentLoaded',()=>{
 'use strict';
-const APP_VERSION='3.9';
+const APP_VERSION='4.0';
 const UPDATE_CHECK_MS=30000;
-const SCREEN_FRAME_HZ=6;
-const SCREEN_FRAME_MS=1000/SCREEN_FRAME_HZ;
+const DEFAULT_SCREEN_FRAME_HZ=6,MIN_SCREEN_FRAME_HZ=1,MAX_SCREEN_FRAME_HZ=60;
+let screenFrameHz=DEFAULT_SCREEN_FRAME_HZ;
+try{const savedFps=Number(localStorage.getItem('cg100fps'));if(Number.isFinite(savedFps)&&savedFps>=MIN_SCREEN_FRAME_HZ&&savedFps<=MAX_SCREEN_FRAME_HZ)screenFrameHz=Math.round(savedFps)}catch(e){}
 function installAutoUpdateCheck(){
  if(!/^https?:$/.test(location.protocol))return;
  let busy=false,lastCheck=0;
@@ -106,7 +107,7 @@ function installAutoUpdateCheck(){
 installAutoUpdateCheck();
 const W=384,H=192,LCDH=216,$=id=>document.getElementById(id),cv=$('screen'),ctx=cv.getContext('2d',{alpha:false}),code=$('code'),status=$('status'),dot=$('dot'),consoleEl=$('console');
 ctx.imageSmoothingEnabled=false;
-let img=ctx.createImageData(W,H),px=img.data,held=null,heldSeen=false,keyQueue=[],stopped=false,running=false,skReady=false,frames=0,lastFrames=0,lastFps=performance.now(),runSerial=0,keyTest=false,lcdMode='home',shellLines=[],graphicsDirty=false,graphicsShown=false,editorTop=0,homeIndex=8,nextScreenAt=0,activeFile='module.py',pythonFolder='',pythonFileIndex=0,bundleReady=false;
+let img=ctx.createImageData(W,H),px=img.data,held=null,heldSeen=false,keyQueue=[],stopped=false,running=false,skReady=false,frames=0,lastFrames=0,lastFps=performance.now(),runSerial=0,keyTest=false,lcdMode='home',shellLines=[],graphicsDirty=false,graphicsShown=false,editorTop=0,homeIndex=8,nextScreenAt=0,activeFile='module.py',pythonFolder='',pythonFileIndex=0,bundleReady=false,fpsReturnMode='home';
 const BUNDLED_PATHS=['module.py','Game_Explorer_Folder/Block.py','Game_Explorer_Folder/Chess.py','Game_Explorer_Folder/Connect4.py','Game_Explorer_Folder/Flappy.py','Game_Explorer_Folder/Game_Folder.py','Game_Explorer_Folder/KeyTest.py','Game_Explorer_Folder/Mine.py','Game_Explorer_Folder/Pacman.py','Game_Explorer_Folder/Snake.py','Game_Explorer_Folder/sudoku.py','Game_Explorer_Folder/Tetris2.py','Game_Explorer_Folder/TicTac.py','Game_Explorer_Folder/Triangle.py','Game_Explorer_Folder/Wordle.py'];
 let bundledFiles={},userModules={};try{userModules=JSON.parse(localStorage.getItem('cg100custommodules')||'{}')||{}}catch(e){userModules={}}
 function projectFiles(){return Object.assign({},userModules,bundledFiles)}
@@ -157,10 +158,13 @@ function openPythonEntry(){const entry=pythonEntries()[pythonFileIndex];if(!entr
 const HOME_APPS=[['Calculate','+−×÷'],['Graph&Table','⌁'],['Statistics','▥'],['Equation','x²'],['Recursion','uₙ'],['Dyna Graph','⌒'],['Distribution','▦'],['Num Ineq','a<x<b'],['Python','Py'],['Base-N','₂₁₀'],['Conic Graphs','◯'],['Spreadsheet','▤']];
 function renderHome(){if(running||keyTest)return;lcdMode='home';cv.style.visibility='visible';lcdBase();fwHeader('HOME');for(let i=0;i<HOME_APPS.length;i++){let c=i%4,r=(i/4)|0,x=48+c*92,y=35+r*49,selected=i===homeIndex;if(selected){ctx.strokeStyle='#1e63bd';ctx.lineWidth=2;ctx.strokeRect(x-35,y-8,72,42)}fwText(HOME_APPS[i][1],x,y-4,17,'700',selected?'#1563c1':'#222','center');fwText(HOME_APPS[i][0],x,y+17,7,'700','#111','center')}fwText('OK/EXE: open selected app',192,180,9,'400','#555','center','Consolas')}
 function openHomeApp(){if(homeIndex===8){pythonFolder='';pythonFileIndex=0;renderPythonFiles();return}lcdBase();fwHeader(HOME_APPS[homeIndex][0]);fwText(HOME_APPS[homeIndex][0],192,82,18,'700','#111','center');fwText('This emulator currently implements Python.',192,112,10,'400','#555','center','Consolas');fwText('BACK: return to HOME',192,180,9,'400','#555','center','Consolas');lcdMode='home-app'}
+function renderFpsSettings(){lcdMode='fps-settings';cv.style.visibility='visible';lcdBase();fwHeader('SETTINGS');fwText('DRAWING FPS',192,40,14,'700','#555','center','Consolas');fwText(screenFrameHz,192,67,38,'700','#111','center','Consolas');fwText('UP/DOWN  +1 / -1',192,118,11,'400','#333','center','Consolas');fwText('LEFT/RIGHT  -5 / +5',192,140,11,'400','#333','center','Consolas');fwText('AC DEFAULT',14,178,10,'700','#555','left','Consolas');fwText('BACK/OK DONE',370,178,10,'700','#555','right','Consolas')}
+function setScreenFrameHz(value){screenFrameHz=Math.max(MIN_SCREEN_FRAME_HZ,Math.min(MAX_SCREEN_FRAME_HZ,Math.round(value)));nextScreenAt=0;try{localStorage.setItem('cg100fps',String(screenFrameHz))}catch(e){}renderFpsSettings()}
+function closeFpsSettings(){const mode=fpsReturnMode;if(mode==='python-files')renderPythonFiles();else if(mode==='editor')renderEditor();else if(mode==='shell')renderShell();else if(mode==='graphics')paint();else renderHome()}
 function drawGraphicsFooter(){ctx.fillStyle='#050505';ctx.fillRect(0,192,W,24);fwText('↤',7,196,16,'700','#fff');fwText('Drawing Screen',192,198,10,'400','#ddd','center','Consolas')}
 function paint(){lcdMode='graphics';cv.style.visibility='visible';lcdBase();ctx.putImageData(img,0,0);drawTurtleOverlay();drawGraphicsFooter();graphicsShown=true;graphicsDirty=false;frames++}
 function requestPaint(){requestAnimationFrame(()=>paint())}
-function showFrame(){const now=performance.now(),delay=Math.max(0,nextScreenAt-now);nextScreenAt=Math.max(now,nextScreenAt)+SCREEN_FRAME_MS;return new Promise(resolve=>setTimeout(()=>{paint();resolve(NONE())},delay))}
+function showFrame(){const now=performance.now(),delay=Math.max(0,nextScreenAt-now);nextScreenAt=Math.max(now,nextScreenAt)+1000/screenFrameHz;return new Promise(resolve=>setTimeout(()=>{paint();resolve(NONE())},delay))}
 clear();graphicsDirty=false;renderHome();
 const taskQueue=[],chan=new MessageChannel();chan.port1.onmessage=()=>{const f=taskQueue.shift();if(f)f()};
 function nextTask(v){return new Promise(resolve=>{taskQueue.push(()=>resolve(v));chan.port2.postMessage(0)})}
@@ -408,6 +412,16 @@ function showKey(k){clear();drawText(8,8,'getkey()',BLACK,'medium');drawText(8,3
 function uiKey(k){
  if(keyTest){showKey(k);return}
  if(running)return;
+ if(lcdMode==='fps-settings'){
+  if(k===14){setScreenFrameHz(screenFrameHz+1);return}
+  if(k===34){setScreenFrameHz(screenFrameHz-1);return}
+  if(k===23){setScreenFrameHz(screenFrameHz-5);return}
+  if(k===25){setScreenFrameHz(screenFrameHz+5);return}
+  if(k===12){setScreenFrameHz(DEFAULT_SCREEN_FRAME_HZ);return}
+  if(k===21||k===22||k===24||k===95||k===13||k===15){closeFpsSettings();return}
+  return
+ }
+ if(k===21){fpsReturnMode=lcdMode;renderFpsSettings();return}
  if(k===36){setCodePanel(true);return}
  if(lcdMode==='home'){
   if(k===23){homeIndex=homeIndex%4===0?homeIndex+3:homeIndex-1;renderHome();return}
