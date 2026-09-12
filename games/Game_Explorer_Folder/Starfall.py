@@ -1,28 +1,19 @@
 # Starfall Quest - turn-based adventure for stock fx-CG100 Python.
-from casioplot import getkey
 from ZMaps import FOES, LINKS, SOLID, tile, room_ok
-from ZCodes import ALPHABET, make_code, read_code
+from ZMenu import wait_key, message, title_menu, pause
 import ZArt as art
 
 UP = 14
-LEFT = 23
 OK = 24
-RIGHT = 25
-DOWN = 34
 EXE = 95
 ZERO = 91
+LEFT = 23
+RIGHT = 25
+DOWN = 34
 DIRS = ((0, -1), (1, 0), (0, 1), (-1, 0))
 GEAR_KEY = 1
 GEAR_LENS = 2
 GEAR_RELIC = 4
-
-def wait_key():
-  key = 0
-  while not key:
-    key = getkey()
-  while getkey():
-    pass
-  return key
 
 def new_game():
   return {"room": 0, "x": 3, "y": 5, "face": 1,
@@ -37,58 +28,6 @@ def spawn(room, cleared):
   for data in FOES[room]:
     answer.append([data[0], data[1], data[2], hp[data[2]]])
   return answer
-
-def message(title, text):
-  art.panel(title, [text], "Press any key")
-  wait_key()
-
-def code_editor():
-  chars = ["2"] * 10
-  pos = 0
-  while True:
-    art.panel("LOAD SAVE CODE", ["".join(chars), " " * pos + "^",
-              "UP/DOWN change  LEFT/RIGHT move"], "EXE load   0 cancel")
-    key = wait_key()
-    if key == UP:
-      at = ALPHABET.find(chars[pos])
-      chars[pos] = ALPHABET[(at + 1) % 32]
-    elif key == DOWN:
-      at = ALPHABET.find(chars[pos])
-      chars[pos] = ALPHABET[(at - 1) % 32]
-    elif key == LEFT:
-      pos = (pos - 1) % 10
-    elif key == RIGHT or key == OK:
-      pos = (pos + 1) % 10
-    elif key == ZERO:
-      return None
-    elif key == EXE:
-      state = read_code("".join(chars), new_game)
-      if state is not None:
-        return state
-      message("INVALID CODE", "Check every character and try again.")
-
-def title_menu():
-  choice = 0
-  items = ("NEW QUEST", "LOAD CODE", "HOW TO PLAY")
-  while True:
-    lines = []
-    for n in range(3):
-      lines.append(("> " if n == choice else "  ") + items[n])
-    art.panel("STARFALL QUEST", lines, "Arrows choose   EXE select")
-    key = wait_key()
-    if key == UP:
-      choice = (choice - 1) % 3
-    elif key == DOWN:
-      choice = (choice + 1) % 3
-    elif key == EXE or key == OK:
-      if choice == 0:
-        return new_game()
-      if choice == 1:
-        state = code_editor()
-        if state is not None:
-          return state
-      else:
-        message("CONTROLS", "Arrows move, EXE strike, OK tonic, 0 pause.")
 
 def clear_reward(state):
   room = state["room"]
@@ -118,6 +57,7 @@ def foe_at(foes, x, y):
 def sword(state, foes):
   dx, dy = DIRS[state["face"]]
   reach = 2 if state["gear"] & GEAR_LENS else 1
+  art.strike(state, reach)
   for step in range(1, reach + 1):
     x = state["x"] + dx * step
     y = state["y"] + dy * step
@@ -167,6 +107,18 @@ def move_player(state, foes, direction):
   state["x"], state["y"] = nx, ny
   return foes, True, False
 
+def clear_shot(state, foe, foes):
+  if foe[0] != state["x"] and foe[1] != state["y"]:
+    return False
+  dx = 0 if foe[0] == state["x"] else (1 if state["x"] > foe[0] else -1)
+  dy = 0 if foe[1] == state["y"] else (1 if state["y"] > foe[1] else -1)
+  x, y = foe[0] + dx, foe[1] + dy
+  while x != state["x"] or y != state["y"]:
+    if tile(state["room"], x, y) in SOLID or foe_at(foes, x, y) is not None:
+      return False
+    x, y = x + dx, y + dy
+  return True
+
 def enemy_turn(state, foes):
   state["turn"] += 1
   old = []
@@ -174,11 +126,14 @@ def enemy_turn(state, foes):
   for foe in foes:
     old.append((foe[0], foe[1]))
     occupied.append((foe[0], foe[1]))
-  hits = 0
+  hit = False
   for foe in foes:
     dist = abs(foe[0] - state["x"]) + abs(foe[1] - state["y"])
     if dist == 1:
-      hits += 1
+      hit = True
+      continue
+    if foe[2] == "W" and state["turn"] % 2 == 0 and clear_shot(state, foe, foes):
+      hit = True
       continue
     if foe[2] == "S" and state["turn"] % 2:
       continue
@@ -195,41 +150,27 @@ def enemy_turn(state, foes):
       occupied.remove((foe[0], foe[1]))
       foe[0], foe[1] = nx, ny
       occupied.append((nx, ny))
-  if hits:
-    state["hp"] -= hits
+  if hit:
+    state["hp"] -= 1
   return old
 
-def pause(state):
-  choice = 0
-  while True:
-    items = ("RESUME", "SHOW SAVE CODE", "ITEMS", "QUIT TO TITLE")
-    lines = []
-    for n in range(4):
-      lines.append(("> " if n == choice else "  ") + items[n])
-    art.panel("PAUSED", lines, "UP/DOWN choose   EXE select")
-    key = wait_key()
-    if key == UP:
-      choice = (choice - 1) % 4
-    elif key == DOWN:
-      choice = (choice + 1) % 4
-    elif key == ZERO and choice != 3:
-      return False
-    elif key == EXE or key == OK:
-      if choice == 0:
-        return False
-      if choice == 1:
-        message("SAVE CODE", make_code(state))
-      elif choice == 2:
-        names = "Sword"
-        if state["gear"] & GEAR_KEY:
-          names += ", Moon Key"
-        if state["gear"] & GEAR_LENS:
-          names += ", Star Lens"
-        if state["gear"] & GEAR_RELIC:
-          names += ", Dawn Relic"
-        message("ITEMS", names)
-      else:
-        return True
+def use_item(state):
+  if state["room"] == 0 and abs(state["x"] - 6) + abs(state["y"] - 5) == 1:
+    if state["potions"] >= 3:
+      message("MOSS SAGE", "Your tonic pouch is already full.")
+    elif state["rupees"] < 10:
+      message("MOSS SAGE", "A healing tonic costs 10 rupees.")
+    else:
+      state["rupees"] -= 10
+      state["potions"] += 1
+      message("MOSS SAGE", "One fresh tonic for your journey!")
+    state["full"] = 1
+    return False
+  if state["potions"] and state["hp"] < state["maxhp"]:
+    state["potions"] -= 1
+    state["hp"] = min(state["maxhp"], state["hp"] + 2)
+    return True
+  return False
 
 def play(state):
   foes = spawn(state["room"], state["cleared"])
@@ -246,10 +187,8 @@ def play(state):
       foes, acted, changed_room = move_player(state, foes, direction)
     elif key == EXE:
       acted = sword(state, foes)
-    elif key == OK and state["potions"] > 0 and state["hp"] < state["maxhp"]:
-      state["potions"] -= 1
-      state["hp"] = min(state["maxhp"], state["hp"] + 2)
-      acted = True
+    elif key == OK:
+      acted = use_item(state)
     elif key == ZERO:
       if pause(state):
         return
@@ -282,6 +221,9 @@ def main():
     message("MAP ERROR", "A room row has the wrong size.")
     return
   while True:
-    play(title_menu())
+    state = title_menu(new_game)
+    if state is None:
+      return
+    play(state)
 
 main()

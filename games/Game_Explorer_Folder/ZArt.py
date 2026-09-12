@@ -40,19 +40,22 @@ def heart(x, y, full):
   fill(x + 4, y + 7, 1, 1, c)
 
 def hud(state):
-  fill(170, 0, 214, 25, WHITE)
+  fill(170, 0, 112, 15, WHITE)
+  fill(284, 0, 100, 15, WHITE)
   x = 174
   for n in range(state["maxhp"]):
     heart(x + n * 11, 4, n < state["hp"])
   draw_string(286, 2, "$" + str(state["rupees"]), GOLD, "small")
   draw_string(337, 2, "P" + str(state["potions"]), VIOLET, "small")
-  line(0, 26, 384, INK)
 
 def draw_tile(room, tx, ty, cleared):
   x = tx * TILE
   y = TOP + ty * TILE
   fill(x, y, TILE, TILE, WHITE)
   ch = ROOMS[room][ty][tx]
+  if ch == "." and room < 3 and (tx * 5 + ty * 3) % 13 == 0:
+    set_pixel(x + 3, y + 12, GRASS)
+    set_pixel(x + 4, y + 10, GRASS)
   if ch == "#":
     fill(x, y, TILE, TILE, STONE)
     box(x + 2, y + 2, 12, 12, INK)
@@ -71,6 +74,11 @@ def draw_tile(room, tx, ty, cleared):
   elif ch == "C" and not cleared:
     fill(x + 3, y + 6, 10, 8, GOLD)
     box(x + 3, y + 6, 10, 8, INK)
+  elif ch == "V":
+    fill(x + 4, y + 3, 8, 10, TREE)
+    fill(x + 5, y + 1, 6, 4, VIOLET)
+    set_pixel(x + 7, y + 7, WHITE)
+    set_pixel(x + 9, y + 7, WHITE)
 
 def actor(tx, ty, color, mark):
   x = tx * TILE
@@ -95,14 +103,46 @@ def draw_player(state):
     set_pixel(x - 3, y + 7, GOLD)
 
 def draw_foes(foes):
-  colors = {"S": TREE, "B": VIOLET, "K": RED, "W": GOLD}
   for foe in foes:
-    actor(foe[0], foe[1], colors[foe[2]], foe[2] != "S")
+    x = foe[0] * TILE
+    y = TOP + foe[1] * TILE
+    kind = foe[2]
+    if kind == "S":
+      fill(x + 3, y + 7, 10, 6, TREE)
+      line(x + 5, y + 5, 6, TREE)
+      set_pixel(x + 6, y + 9, WHITE)
+      set_pixel(x + 10, y + 9, WHITE)
+    elif kind == "B":
+      fill(x + 6, y + 5, 5, 7, VIOLET)
+      line(x + 1, y + 5, 6, VIOLET)
+      line(x + 10, y + 5, 5, VIOLET)
+      line(x + 3, y + 8, 4, VIOLET)
+      line(x + 10, y + 8, 3, VIOLET)
+    elif kind == "K":
+      actor(foe[0], foe[1], RED, True)
+      fill(x + 4, y + 3, 8, 3, STONE)
+    else:
+      fill(x + 3, y + 2, 10, 12, GOLD)
+      box(x + 3, y + 2, 10, 12, VIOLET)
+      fill(x + 6, y + 5, 4, 4, INK)
+    if foe[3] > 1:
+      for n in range(min(6, foe[3])):
+        set_pixel(x + 4 + n, y + 1, RED)
+
+def strike(state, reach):
+  x = state["x"] * TILE + 8
+  y = TOP + state["y"] * TILE + 8
+  dirs = ((0, -1), (1, 0), (0, 1), (-1, 0))
+  dx, dy = dirs[state["face"]]
+  for n in range(6, reach * TILE + 2):
+    set_pixel(x + dx * n, y + dy * n, GOLD)
+  show_screen()
 
 def room(state, foes):
   clear_screen()
   draw_string(4, 2, NAMES[state["room"]], INK, "small")
   hud(state)
+  line(0, 26, 384, INK)
   done = (state["cleared"] & (1 << state["room"])) != 0
   for y in range(10):
     for x in range(24):
